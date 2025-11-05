@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/excel-comparison-tool/static/css/main.0b4e0100.css",
+    "main.js": "/excel-comparison-tool/static/js/main.01b9bef4.js",
+    "index.html": "/excel-comparison-tool/index.html",
+    "main.0b4e0100.css.map": "/excel-comparison-tool/static/css/main.0b4e0100.css.map",
+    "main.01b9bef4.js.map": "/excel-comparison-tool/static/js/main.01b9bef4.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.0b4e0100.css",
+    "static/js/main.01b9bef4.js"
+  ]
+}
