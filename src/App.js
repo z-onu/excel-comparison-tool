@@ -103,6 +103,71 @@ export default function ExcelComparisonTool() {
     return letter;
   };
 
+  const handleDownloadResults = () => {
+    if (!comparison) return;
+
+    const workbook = XLSX.utils.book_new();
+    const usedSheetNames = new Set();
+
+    const appendSheet = (sheetData, desiredName) => {
+      const baseName = desiredName || 'Sheet';
+      let uniqueName = baseName;
+      let counter = 1;
+      while (usedSheetNames.has(uniqueName)) {
+        uniqueName = `${baseName}_${counter++}`;
+      }
+      usedSheetNames.add(uniqueName);
+      XLSX.utils.book_append_sheet(workbook, sheetData, uniqueName);
+    };
+
+    const summaryData = [
+      ['File 1', `${file1Name || 'File 1'} (${selectedSheet1 || 'Sheet'})`],
+      ['File 2', `${file2Name || 'File 2'} (${selectedSheet2 || 'Sheet'})`],
+      ['Total Cells', comparison.totalCells],
+      ['Matching Cells', comparison.matchingCells],
+      ['Differences', comparison.diffs.length]
+    ];
+    const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+    appendSheet(summarySheet, 'Summary');
+
+    const diffRows = [
+      ['Cell', 'File 1 Value', 'File 2 Value'],
+      ...comparison.diffs.map(diff => [
+        `${getColumnLetter(diff.col)}${diff.row + 1}`,
+        diff.val1 === undefined ? '' : String(diff.val1),
+        diff.val2 === undefined ? '' : String(diff.val2)
+      ])
+    ];
+    if (diffRows.length === 1) {
+      diffRows.push(['-', 'All cells match', '']);
+    }
+    const diffSheet = XLSX.utils.aoa_to_sheet(diffRows);
+    appendSheet(diffSheet, 'Differences');
+
+    const buildTable = (sheet) => {
+      const head = ['Row/Col', ...Array.from({ length: comparison.maxCols }, (_, i) => getColumnLetter(i))];
+      const dataRows = Array.from({ length: comparison.maxRows }).map((_, rowIdx) => [
+        rowIdx + 1,
+        ...Array.from({ length: comparison.maxCols }).map((_, colIdx) => String(sheet[rowIdx]?.[colIdx] ?? ''))
+      ]);
+      return [head, ...dataRows];
+    };
+
+    appendSheet(
+      XLSX.utils.aoa_to_sheet(buildTable(comparison.sheet1)),
+      `${selectedSheet1 || 'Sheet1'}`
+    );
+    appendSheet(
+      XLSX.utils.aoa_to_sheet(buildTable(comparison.sheet2)),
+      `${selectedSheet2 || 'Sheet2'}`
+    );
+
+    const sanitize = (name) => (name || 'file').replace(/[^a-z0-9]/gi, '_');
+    const filename = `comparison_${sanitize(file1Name)}_${sanitize(file2Name)}.xlsx`;
+
+    XLSX.writeFile(workbook, filename);
+  };
+
   return (
     <div className="app-container">
       <div className="content-wrapper">
@@ -186,7 +251,13 @@ export default function ExcelComparisonTool() {
           {comparison && (
             <div className="results">
               <div className="summary-box">
-                <h2>Comparison Summary</h2>
+                <div className="summary-header">
+                  <h2>Comparison Summary</h2>
+                  <button className="export-btn" onClick={handleDownloadResults}>
+                    <Download className="btn-icon" />
+                    Download Results
+                  </button>
+                </div>
                 <div className="stats-grid">
                   <div className="stat-card">
                     <p className="stat-label">Total Cells</p>
