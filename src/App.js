@@ -255,7 +255,7 @@ export default function ExcelComparisonTool() {
                   <h2>Comparison Summary</h2>
                   <button className="export-btn" onClick={handleDownloadResults}>
                     <Download className="btn-icon" />
-                    Download Results
+                    Download Combained Results
                   </button>
                 </div>
                 <div className="stats-grid">
